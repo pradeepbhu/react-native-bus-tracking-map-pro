@@ -22,11 +22,11 @@
     "live-tracking",
     "school-bus"
   ],
-  "author": "YOUR NAME",
+  "author": "Pradeep Yadav",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/YOUR_USERNAME/react-native-bus-tracking-map-pro"
+    "url": "https://github.com/pradeepbhu/react-native-bus-tracking-map-pro"
   },
   "peerDependencies": {
     "react": ">=17",
