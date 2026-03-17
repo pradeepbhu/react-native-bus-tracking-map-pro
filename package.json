@@ -1,6 +1,6 @@
 {
   "name": "react-native-bus-tracking-map-pro",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Production-ready React Native bus tracking map with WebSocket, OSRM routing, multi-bus support and dark mode",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
