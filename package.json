@@ -1,6 +1,6 @@
 {
   "name": "react-native-bus-tracking-map-pro",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Production-ready React Native bus tracking map with WebSocket, OSRM routing, multi-bus support and dark mode",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -26,7 +26,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pradeepbhu/react-native-bus-tracking-map-pro"
+    "url": "git+https://github.com/pradeepbhu/react-native-bus-tracking-map-pro.git"
   },
   "peerDependencies": {
     "react": ">=17",
