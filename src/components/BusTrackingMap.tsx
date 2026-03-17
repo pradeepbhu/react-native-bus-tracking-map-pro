@@ -27,6 +27,7 @@ const BusTrackingMap: React.FC<BusTrackingMapProps> = (props) => {
     showStatusBadge,
     showScaleBar = false,
     showSpeed = false,
+    isConnected,
     onBusPress,
     onStopPress,
     onMapPress,
@@ -93,6 +94,13 @@ const BusTrackingMap: React.FC<BusTrackingMapProps> = (props) => {
     `);
   }, [buses]);
 
+  // ── External isConnected prop → WebView badge update ─────
+  useEffect(() => {
+    if (isConnected === undefined || !webRef.current) return;
+    const status = isConnected ? 'connected' : 'disconnected';
+    webRef.current.injectJavaScript(`window.setStatus && window.setStatus('${status}'); true;`);
+  }, [isConnected]);
+
   // ── Follow bus ────────────────────────────────────────────
   useEffect(() => {
     if (!followBusId || !webRef.current) return;
@@ -138,7 +146,7 @@ const BusTrackingMap: React.FC<BusTrackingMapProps> = (props) => {
     showStartEnd,
     showMyLocationButton,
     showZoomControls,
-    showStatusBadge: showStatusBadge ?? !!wsUrl,
+    showStatusBadge: showStatusBadge ?? (!!wsUrl || isConnected !== undefined),
     showScaleBar,
     showSpeed,
   });

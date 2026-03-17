@@ -48,6 +48,8 @@ export type BusTrackingMapProps = {
   showMyLocationButton?: boolean;
   showZoomControls?: boolean;
   showStatusBadge?: boolean;
+  /** Bahar se connected state pass karo — badge update hoga */
+  isConnected?: boolean;
   showScaleBar?: boolean;
   onBusPress?: (bus: Bus) => void;
   onStopPress?: (stop: Location) => void;
