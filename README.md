@@ -17,16 +17,21 @@ cd ios && pod install   # iOS only
 
 ### 1️⃣ Only Map (no route, no bus)
 ```tsx
+import { BusTrackingMap } from 'react-native-bus-tracking-map-pro';
+
 <BusTrackingMap mode="static" />
 ```
 
 ### 2️⃣ Route Only (no live bus)
 ```tsx
+import { BusTrackingMap } from 'react-native-bus-tracking-map-pro';
+
 <BusTrackingMap route={ROUTE} mode="route" />
 ```
 
 ### 3️⃣ Static Bus (manual position)
 ```tsx
+import { BusTrackingMap } from 'react-native-bus-tracking-map-pro';
 <BusTrackingMap
   route={ROUTE}
   buses={[{ id: 'bus1', lat: 28.61, lng: 77.37, label: 'Bus A' }]}
@@ -35,6 +40,7 @@ cd ios && pod install   # iOS only
 
 ### 4️⃣ Live Tracking (WebSocket — optional)
 ```tsx
+import { BusTrackingMap } from 'react-native-bus-tracking-map-pro';
 <BusTrackingMap
   route={ROUTE}
   wsUrl="ws://your-server.com:3000"
