@@ -2,26 +2,45 @@ import { Route, MapTheme, MapMode } from '../types';
 
 const TILES: Record<MapTheme, { url: string; attribution: string }> = {
   light: {
-    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-    attribution: '© CARTO © OpenStreetMap',
+    // ✅ OpenFreeMap — 100% free, no API key, no limit, forever
+    url: 'https://tiles.openfreemap.org/styles/liberty/{z}/{x}/{y}.png',
+    attribution: '© <a href="https://openfreemap.org">OpenFreeMap</a> © OpenStreetMap',
   },
   dark: {
+    // ✅ CartoDB Dark — free for all use
     url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
     attribution: '© CARTO © OpenStreetMap',
   },
   satellite: {
+    // ✅ Esri Satellite — free for non-commercial
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     attribution: '© Esri',
   },
   terrain: {
-    url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
-    attribution: '© OpenTopoMap © OpenStreetMap',
+    // ✅ Esri Topo — free for non-commercial
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+    attribution: '© Esri © OpenStreetMap',
   },
 };
 
+// ✅ Maptiler — unlimited requests with API key (recommended for production)
+const getMaptilerTile = (theme: MapTheme, key: string) => {
+  const maps: Record<MapTheme, string> = {
+    light:     `https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=${key}`,
+    dark:      `https://api.maptiler.com/maps/dataviz-dark/{z}/{x}/{y}.png?key=${key}`,
+    satellite: `https://api.maptiler.com/maps/hybrid/{z}/{x}/{y}.jpg?key=${key}`,
+    terrain:   `https://api.maptiler.com/maps/topo/{z}/{x}/{y}.png?key=${key}`,
+  };
+  return {
+    url: maps[theme] || maps.light,
+    attribution: '© <a href="https://www.maptiler.com/">MapTiler</a> © OpenStreetMap',
+  };
+};
+
 const FALLBACK_TILE = {
-  url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-  attribution: '© OpenStreetMap',
+  // ✅ CARTO Voyager — free fallback, no API key needed
+  url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+  attribution: '© CARTO © OpenStreetMap',
 };
 
 export interface BuildHTMLOptions {
@@ -42,6 +61,8 @@ export interface BuildHTMLOptions {
   showScaleBar?: boolean;
   showSpeed?: boolean;
   isConnected?: boolean;
+  /** Maptiler API key — unlimited tiles for production (https://maptiler.com) */
+  mapTilerKey?: string;
 }
 
 export const buildHTML = (opts: BuildHTMLOptions): string => {
@@ -63,7 +84,11 @@ export const buildHTML = (opts: BuildHTMLOptions): string => {
     isConnected,
   } = opts;
 
-  const tile = TILES[theme] || TILES.light;
+  // ✅ Maptiler key diya to unlimited tiles, warna Esri free tiles
+  const mapTilerKey = opts.mapTilerKey;
+  const tile = mapTilerKey
+    ? getMaptilerTile(theme, mapTilerKey)
+    : (TILES[theme] || TILES.light);
   const isDark = theme === 'dark';
 
   // Default center
@@ -157,23 +182,30 @@ export const buildHTML = (opts: BuildHTMLOptions): string => {
       attributionControl: true,
     }).setView([${defaultLat}, ${defaultLng}], ${zoom});
 
-    // Primary tile
-    var primaryTile = L.tileLayer('${tile.url}', {
-      attribution: '${tile.attribution}',
-      maxZoom: 19,
-    }).addTo(map);
+    // ── Tile Fallback Chain (3 servers) ──────────────────────
+    // Agar ek block ho → dusra automatically load hoga
+    var tileServers = [
+      { url: '${tile.url}', attr: '${tile.attribution}' },
+      { url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', attr: '© CARTO © OpenStreetMap' },
+      { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', attr: '© Esri © OpenStreetMap' },
+    ];
+    var currentTileIndex = 0;
+    var activeTile = null;
 
-    // Fallback tile on error
-    var fallbackAdded = false;
-    primaryTile.on('tileerror', function() {
-      if (!fallbackAdded) {
-        fallbackAdded = true;
-        L.tileLayer('${FALLBACK_TILE.url}', {
-          attribution: '${FALLBACK_TILE.attribution}',
-          maxZoom: 19,
-        }).addTo(map);
-      }
-    });
+    function loadTile(index) {
+      if (index >= tileServers.length) return; // sab fail — kuch nahi karna
+      if (activeTile) map.removeLayer(activeTile);
+      activeTile = L.tileLayer(tileServers[index].url, {
+        attribution: tileServers[index].attr,
+        maxZoom: 19,
+      }).addTo(map);
+      activeTile.on('tileerror', function() {
+        console.log('Tile server ' + index + ' failed, trying next...');
+        loadTile(index + 1);
+      });
+    }
+
+    loadTile(0); // Pehle primary se start karo
 
     ${showScaleBar ? "L.control.scale({ imperial: false }).addTo(map);" : ""}
 
