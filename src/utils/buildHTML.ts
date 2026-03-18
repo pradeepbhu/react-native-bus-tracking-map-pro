@@ -41,6 +41,7 @@ export interface BuildHTMLOptions {
   showStatusBadge?: boolean;
   showScaleBar?: boolean;
   showSpeed?: boolean;
+  isConnected?: boolean;
 }
 
 export const buildHTML = (opts: BuildHTMLOptions): string => {
@@ -59,6 +60,7 @@ export const buildHTML = (opts: BuildHTMLOptions): string => {
     showStatusBadge = false,
     showScaleBar = false,
     showSpeed = false,
+    isConnected,
   } = opts;
 
   const tile = TILES[theme] || TILES.light;
@@ -139,7 +141,7 @@ export const buildHTML = (opts: BuildHTMLOptions): string => {
   <div id="map"></div>
   <div id="loading">🛣️ Route load ho rahi hai...</div>
   ${showMyLocationButton ? '<button id="myLocationBtn" title="My Location">📍</button>' : ''}
-  ${showStatusBadge ? '<div id="statusBadge" class="waiting">⏳ Connecting...</div>' : ''}
+  ${showStatusBadge ? `<div id="statusBadge" class="${isConnected === true ? 'connected' : isConnected === false ? 'disconnected' : 'waiting'}">${isConnected === true ? '🟢 Live' : isConnected === false ? '🔴 Disconnected' : '⏳ Connecting...'}</div>` : ''}
 
   <script>
     // ── State ────────────────────────────────────────────────

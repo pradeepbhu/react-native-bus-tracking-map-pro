@@ -149,6 +149,7 @@ const BusTrackingMap: React.FC<BusTrackingMapProps> = (props) => {
     showStatusBadge: showStatusBadge ?? (!!wsUrl || isConnected !== undefined),
     showScaleBar,
     showSpeed,
+    isConnected,
   });
 
   const containerStyle = [
