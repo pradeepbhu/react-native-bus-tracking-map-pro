@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 // @ts-ignore
 import { WebView } from 'react-native-webview';
 import { BusTrackingMapProps, Bus, MapMode } from '../types';
@@ -40,7 +40,7 @@ const BusTrackingMap: React.FC<BusTrackingMapProps> = (props) => {
 
   const webRef = useRef<any>(null);
   const [buses, setBuses] = useState<Bus[]>(propBuses);
-
+  const [mapReady, setMapReady] = useState(false);
   // Auto-detect mode
   const resolvedMode: MapMode = mode ?? (wsUrl || propBuses.length > 0 ? 'tracking' : route ? 'route' : 'static');
 
@@ -128,7 +128,7 @@ const BusTrackingMap: React.FC<BusTrackingMapProps> = (props) => {
           onMyLocation?.({ lat: msg.lat, lng: msg.lng });
           break;
       }
-    } catch (_) {}
+    } catch (_) { }
   }, [onBusPress, onStopPress, onMapPress, onMyLocation]);
 
   // ── Build HTML ────────────────────────────────────────────
@@ -160,16 +160,34 @@ const BusTrackingMap: React.FC<BusTrackingMapProps> = (props) => {
 
   return (
     <View style={containerStyle}>
+      {!mapReady && (
+        <View style={styles.skeleton}>
+          <View style={styles.skeletonInner}>
+            <Text style={styles.skeletonIcon}>🗺️</Text>
+            <Text style={styles.skeletonText}>Map load ho raha hai...</Text>
+            <View style={styles.skeletonBar} />
+          </View>
+        </View>
+      )}
       <WebView
         ref={webRef}
         source={{ html }}
-        style={styles.webview}
+        style={[styles.webview, !mapReady && styles.hidden]}
         javaScriptEnabled
         originWhitelist={['*']}
         mixedContentMode="always"
         allowUniversalAccessFromFileURLs
         geolocationEnabled
+        cacheEnabled={true}
+        cacheMode="LOAD_CACHE_ELSE_NETWORK"
+        setSupportMultipleWindows={false}
+        onLoad={() => setMapReady(true)}
         onMessage={handleMessage}
+
+        domStorageEnabled={true}
+        allowFileAccess={true}
+        allowFileAccessFromFileURLs={true}
+        androidLayerType="hardware"
       />
     </View>
   );
@@ -178,6 +196,34 @@ const BusTrackingMap: React.FC<BusTrackingMapProps> = (props) => {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   webview: { flex: 1, backgroundColor: 'transparent' },
+  hidden: { opacity: 0, position: 'absolute', width: '100%', height: '100%' },  // ← ADD
+
+  skeleton: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#e8f4f8',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  skeletonInner: {
+    alignItems: 'center',
+    gap: 12,
+  },
+  skeletonIcon: {
+    fontSize: 48,
+  },
+  skeletonText: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '600',
+  },
+  skeletonBar: {
+    width: 120,
+    height: 4,
+    backgroundColor: '#1565C0',
+    borderRadius: 2,
+    opacity: 0.4,
+  },
 });
 
 export default BusTrackingMap;
